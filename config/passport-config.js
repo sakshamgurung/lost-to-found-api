@@ -7,7 +7,7 @@ async function verify(email, password, done) {
 	try {
 		const account = await getAccountByEmail(email);
 		if (account == null) {
-			return done(null, false, { message: "Incorrect email or password" });
+			return done(null, false, { message: "Account doesn't exists" });
 		}
 		if (await bcrypt.compare(password, account.password)) {
 			return done(null, account);
@@ -15,6 +15,7 @@ async function verify(email, password, done) {
 			return done(null, false, { message: "Incorrect email or password" });
 		}
 	} catch (error) {
+		console.log("Error login (server):", error);
 		return done(error);
 	}
 }
