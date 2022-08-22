@@ -1,14 +1,28 @@
 const account = require("../account/account");
 
+function checkAccountNotExists(req, res, next) {
+	const { email } = req.body;
+	account
+		.getAccountByEmail(email)
+		.then((acc) => {
+			if (acc != null) {
+				return res.send({ accountExists: true, message: "Account already exists" }).status(400);
+			}
+		})
+		.catch((error) => {
+			console.log("Account not exists: ", error);
+			next();
+		});
+}
+
 function checkAccountExists(req, res, next) {
 	const { email } = req.body;
 	account.getAccountByEmail(email).then((acc) => {
-		console.log("Acc exits", acc != null);
 		if (acc != null) {
-			return res.send({ accountExists: true }).status(400);
+			return next();
 		}
-		next();
+		res.send({ accountExists: false, message: "Account doesn't exists" }).status(404);
 	});
 }
 
-module.exports = { checkAccountExists };
+module.exports = { checkAccountExists, checkAccountNotExists };

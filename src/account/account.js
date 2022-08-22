@@ -14,6 +14,7 @@ let accountSchema = new Schema(
 		name: { type: "string" },
 		email: { type: "string" },
 		password: { type: "string" },
+		tokens: { type: "string[]" },
 	},
 	{
 		dataStructure: "JSON",
@@ -31,6 +32,22 @@ async function createAccount(data) {
 		return id;
 	} catch (error) {
 		console.log("Error creating account", error);
+	}
+}
+
+async function updateAccountById(id, data) {
+	try {
+		await connect();
+		const accountRepo = client.fetchRepository(accountSchema);
+		const account = await accountRepo.fetch(id);
+		account.name = data.name ?? null;
+		account.email = data.email ?? null;
+		account.password = data.password ?? null;
+		account.tokens = data.tokens ?? null;
+		await accountRepo.save(account);
+		return account;
+	} catch (error) {
+		console.log("Error updating token in account");
 	}
 }
 
@@ -56,4 +73,10 @@ async function createIndex() {
 
 createIndex();
 
-module.exports = { createAccount, getAccountById, getAccountByEmail, createIndex };
+module.exports = {
+	createAccount,
+	getAccountById,
+	getAccountByEmail,
+	createIndex,
+	updateAccountById,
+};

@@ -1,11 +1,13 @@
-const passport = require("passport");
+const router = require("express").Router();
+const jwtToken = require("jsonwebtoken");
 
+const config = require("../../config");
 const account = require("./account");
 const { checkAuthenticated, checkNotAuthenticated } = require("../middleware/auth");
-const { checkAccountExists } = require("../middleware/account");
-const router = require("express").Router();
+const { checkAccountExists, checkAccountNotExists } = require("../middleware/account");
+const verify = require("../../util/verify").verify;
 
-router.post("/account", [checkNotAuthenticated, checkAccountExists], async (req, res) => {
+router.post("/account", [checkNotAuthenticated, checkAccountNotExists], async (req, res) => {
 	const body = req.body;
 	const data = await account.createAccount(body);
 	res.send(data).status(200);
@@ -18,36 +20,34 @@ router.get("/account/isAuth", checkAuthenticated, (req, res) => {
 router.get("/account/:id", checkAuthenticated, async (req, res) => {
 	const id = req.params.id;
 	const data = await account.getAccountById(id);
+	data.password = null;
 	res.send(data).status(200);
 });
 
-router.post("/login", checkNotAuthenticated, (req, res, next) => {
-	passport.authenticate("local", (err, user, info) => {
-		if (err) {
-			return res.status(400).send({ error: err, isAuth: false });
-		}
+router.post("/login", [checkNotAuthenticated, checkAccountExists], async (req, res) => {
+	const { email, password } = req.body;
+	const verifiedAcc = await verify(email, password, res);
+	const authToken = jwtToken.sign(
+		{
+			entityId: verifiedAcc.entityId,
+			email: verifiedAcc.email,
+			name: verifiedAcc.name,
+			createdDate: new Date().toISOString(),
+		},
+		config.jwtSecret
+	);
 
-		if (!user) {
-			return res.status(400).send({ ...info, isAuth: false });
-		}
-
-		req.logIn(user, function (err) {
-			if (err) {
-				return next(err);
-			}
-			return res.send({ isAuth: true });
-		});
-	})(req, res, next);
+	verifiedAcc.tokens = [authToken];
+	const data = await account.updateAccountById(verifiedAcc.entityId, verifiedAcc);
+	res.send({ isAuth: true, tokens: data.tokens }).status(200);
 });
 
-router.delete("/logout", checkAuthenticated, (req, res, next) => {
-	req.logOut((err) => {
-		if (err) {
-			return next(err);
-		}
-
-		res.send({ isAuth: false });
-	});
+router.delete("/logout", checkAuthenticated, async (req, res, next) => {
+	const { entityId } = req.auth;
+	const acc = await account.getAccountById(entityId);
+	acc.tokens = null;
+	await account.updateAccountById(entityId, acc);
+	res.send({ isAuth: false }).status(200);
 });
 
 module.exports = router;
