@@ -6,6 +6,7 @@ const flash = require("express-flash");
 const config = require("./config");
 const accountRouter = require("./src/account/router");
 const submissionRouter = require("./src/submission/router");
+const categoryRouter = require("./src/category/router");
 
 const app = express();
 const apiVersion = "/api";
@@ -18,6 +19,7 @@ app.use(cors());
 
 app.use(apiVersion, accountRouter);
 app.use(apiVersion, submissionRouter);
+app.use(apiVersion, categoryRouter);
 
 app.listen(config.port, () => {
 	console.log(`Server running at PORT:${config.port}`);
