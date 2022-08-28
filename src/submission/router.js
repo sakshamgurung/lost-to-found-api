@@ -8,12 +8,6 @@ router.post("/submission", checkAuthenticated, async (req, res) => {
 	res.send(data).status(200);
 });
 
-router.get("/submission/:id", checkAuthenticated, async (req, res) => {
-	const id = req.params.id;
-	const data = await submission.getSubmissionById(id);
-	res.send(data).status(200);
-});
-
 router.get("/submission/user/:id", checkAuthenticated, async (req, res) => {
 	const id = req.params.id;
 	const data = await submission.getAllSubmissionByUser(id);
@@ -23,6 +17,17 @@ router.get("/submission/user/:id", checkAuthenticated, async (req, res) => {
 router.get("/submission/near/loc", checkAuthenticated, async (req, res) => {
 	const { latitude, longitude } = req.query;
 	const data = await submission.getSubmissionByNearestLocation({ longitude, latitude });
+	res.send(data).status(200);
+});
+
+router.get("/submission/date/latest", checkAuthenticated, async (req, res) => {
+	const data = await submission.getSubmissionByLatestDate();
+	res.send(data).status(200);
+});
+
+router.get("/submission/:id", checkAuthenticated, async (req, res) => {
+	const id = req.params.id;
+	const data = await submission.getSubmissionById(id);
 	res.send(data).status(200);
 });
 

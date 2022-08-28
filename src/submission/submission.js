@@ -1,3 +1,5 @@
+const fs = require("fs");
+
 const redis = require("redis-om");
 
 const { client, connect } = require("../../config/redis");
@@ -65,7 +67,7 @@ async function getSubmissionByNearestLocation(location) {
 	return submissions;
 }
 
-async function getAllSubmissionByLatestDate() {
+async function getSubmissionByLatestDate() {
 	await connect();
 	const submissionRepo = client.fetchRepository(submissionSchema);
 	const submissions = await submissionRepo.search().sortBy("date", "DESC").return.all();
@@ -99,10 +101,16 @@ async function deleteSubmissionById(id) {
 	try {
 		await connect();
 		const submissionRepo = client.fetchRepository(submissionSchema);
+		const submission = await submissionRepo.fetch(id);
+		submission.imageUrl.forEach((i) => {
+			fs.unlink(`${__dirname}/../../upload/images/${i}`, (err) => {
+				if (err) return console.log("Error deleting image file: ", err);
+			});
+		});
 		await submissionRepo.remove(id);
 		return id;
 	} catch (error) {
-		console.log("Error deleting submission");
+		console.log("Error deleting submission: ", error);
 	}
 }
 
@@ -119,6 +127,7 @@ module.exports = {
 	createSubmission,
 	getAllSubmissionByUser,
 	getSubmissionByNearestLocation,
+	getSubmissionByLatestDate,
 	getSubmissionById,
 	updateSubmissionById,
 	deleteSubmissionById,
