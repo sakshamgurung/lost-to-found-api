@@ -56,21 +56,32 @@ async function getAllSubmissionByUser(userId) {
 	return submissions;
 }
 
-async function getSubmissionByNearestLocation(location) {
+async function getSubmissionByNearestLocation(excludeUserId, submissionType, location) {
 	await connect();
 	const submissionRepo = client.fetchRepository(submissionSchema);
 	const submissions = await submissionRepo
 		.search()
+		.where("userId")
+		.does.not.equal(excludeUserId)
+		.where("type")
+		.equals(submissionType)
 		.where("location1")
 		.inRadius((circle) => circle.origin(location).radius(50).kilometers)
 		.return.all();
 	return submissions;
 }
 
-async function getSubmissionByLatestDate() {
+async function getSubmissionByLatestDate(excludeUserId, submissionType) {
 	await connect();
 	const submissionRepo = client.fetchRepository(submissionSchema);
-	const submissions = await submissionRepo.search().sortBy("date", "DESC").return.all();
+	const submissions = await submissionRepo
+		.search()
+		.where("userId")
+		.does.not.equal(excludeUserId)
+		.where("type")
+		.equals(submissionType)
+		.sortBy("date", "DESC")
+		.return.all();
 	return submissions;
 }
 

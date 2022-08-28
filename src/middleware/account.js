@@ -8,6 +8,7 @@ function checkAccountNotExists(req, res, next) {
 			if (acc != null) {
 				return res.send({ accountExists: true, message: "Account already exists" }).status(400);
 			}
+			next();
 		})
 		.catch((error) => {
 			console.log("Account not exists: ", error);
