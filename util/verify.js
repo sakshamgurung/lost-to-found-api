@@ -8,11 +8,13 @@ async function verify(email, password, res) {
 		if (await bcrypt.compare(password, account.password)) {
 			return account;
 		} else {
-			return res.send({ message: "Incorrect password" }).status(403);
+			res.status(403).send({ isAuth: false, message: "Incorrect password" });
+			return null;
 		}
 	} catch (error) {
 		console.log("Error verifying login (server):", error);
-		res.send({ message: "Server error" }).status(500);
+		res.status(500).send({ isAuth: false, message: "Server error" });
+		return null;
 	}
 }
 
@@ -28,6 +30,7 @@ async function verifyToken(entityId, token, res) {
 	} catch (error) {
 		console.log("Error verifying token (server):", error);
 		res.send({ message: "Server error" }).status(500);
+		return false;
 	}
 }
 

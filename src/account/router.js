@@ -27,19 +27,21 @@ router.get("/account/:id", checkAuthenticated, async (req, res) => {
 router.post("/login", [checkNotAuthenticated, checkAccountExists], async (req, res) => {
 	const { email, password } = req.body;
 	const verifiedAcc = await verify(email, password, res);
-	const authToken = jwtToken.sign(
-		{
-			entityId: verifiedAcc.entityId,
-			email: verifiedAcc.email,
-			name: verifiedAcc.name,
-			createdDate: new Date().toISOString(),
-		},
-		config.jwtSecret
-	);
+	if (verifiedAcc) {
+		const authToken = jwtToken.sign(
+			{
+				entityId: verifiedAcc.entityId,
+				email: verifiedAcc.email,
+				name: verifiedAcc.name,
+				createdDate: new Date().toISOString(),
+			},
+			config.jwtSecret
+		);
 
-	verifiedAcc.tokens = [authToken];
-	const data = await account.updateAccountById(verifiedAcc.entityId, verifiedAcc);
-	res.send({ isAuth: true, tokens: data.tokens }).status(200);
+		verifiedAcc.tokens = [authToken];
+		const data = await account.updateAccountById(verifiedAcc.entityId, verifiedAcc);
+		res.send({ isAuth: true, tokens: data.tokens }).status(200);
+	}
 });
 
 router.delete("/logout", checkAuthenticated, async (req, res, next) => {

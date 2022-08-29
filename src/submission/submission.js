@@ -63,7 +63,7 @@ async function getSubmissionByNearestLocation(excludeUserId, submissionType, loc
 		.search()
 		.where("userId")
 		.does.not.equal(excludeUserId)
-		.where("type")
+		.and("type")
 		.equals(submissionType)
 		.where("location1")
 		.inRadius((circle) => circle.origin(location).radius(50).kilometers)
@@ -78,9 +78,39 @@ async function getSubmissionByLatestDate(excludeUserId, submissionType) {
 		.search()
 		.where("userId")
 		.does.not.equal(excludeUserId)
-		.where("type")
+		.and("type")
 		.equals(submissionType)
 		.sortBy("date", "DESC")
+		.return.all();
+	return submissions;
+}
+
+async function searchSubmissionsByCategory(excludeUserId, submissionType, category) {
+	await connect();
+	const submissionRepo = client.fetchRepository(submissionSchema);
+	const submissions = await submissionRepo
+		.search()
+		.where("userId")
+		.does.not.equal(excludeUserId)
+		.and("type")
+		.equals(submissionType)
+		.and("category")
+		.equals(category)
+		.return.all();
+	return submissions;
+}
+
+async function searchSubmissionsByFullText(excludeUserId, submissionType, query) {
+	await connect();
+	const submissionRepo = client.fetchRepository(submissionSchema);
+	const submissions = await submissionRepo
+		.search()
+		.where("userId")
+		.does.not.equal(excludeUserId)
+		.and("type")
+		.equals(submissionType)
+		.where("description")
+		.matches(query)
 		.return.all();
 	return submissions;
 }
@@ -139,6 +169,8 @@ module.exports = {
 	getAllSubmissionByUser,
 	getSubmissionByNearestLocation,
 	getSubmissionByLatestDate,
+	searchSubmissionsByCategory,
+	searchSubmissionsByFullText,
 	getSubmissionById,
 	updateSubmissionById,
 	deleteSubmissionById,

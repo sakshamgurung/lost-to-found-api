@@ -6,7 +6,8 @@ function checkAccountNotExists(req, res, next) {
 		.getAccountByEmail(email)
 		.then((acc) => {
 			if (acc != null) {
-				return res.send({ accountExists: true, message: "Account already exists" }).status(400);
+				res.status(400).send({ accountExists: true, message: "Account already exists" });
+				return;
 			}
 			next();
 		})
@@ -22,7 +23,7 @@ function checkAccountExists(req, res, next) {
 		if (acc != null) {
 			return next();
 		}
-		res.send({ accountExists: false, message: "Account doesn't exists" }).status(404);
+		res.status(404).send({ accountExists: false, message: "Account doesn't exists" });
 	});
 }
 

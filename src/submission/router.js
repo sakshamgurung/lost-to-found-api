@@ -24,8 +24,24 @@ router.get("/submission/near/loc", checkAuthenticated, async (req, res) => {
 });
 
 router.get("/submission/date/latest", checkAuthenticated, async (req, res) => {
-	const { excludeUserId, submissionType } = req.body;
+	const { excludeUserId, submissionType } = req.query;
 	const data = await submission.getSubmissionByLatestDate(excludeUserId, submissionType);
+	res.send(data).status(200);
+});
+
+router.get("/submission/category", checkAuthenticated, async (req, res) => {
+	const { category, excludeUserId, submissionType } = req.query;
+	const data = await submission.searchSubmissionsByCategory(
+		excludeUserId,
+		submissionType,
+		category
+	);
+	res.send(data).status(200);
+});
+
+router.get("/submission/search", checkAuthenticated, async (req, res) => {
+	const { search, excludeUserId, submissionType } = req.query;
+	const data = await submission.searchSubmissionsByFullText(excludeUserId, submissionType, search);
 	res.send(data).status(200);
 });
 
